@@ -1,0 +1,27 @@
+# this config file contains all config fields with comments
+kind: Cluster
+apiVersion: kind.sigs.k8s.io/v1alpha3
+# patch the generated kubeadm config with some extra settings
+kubeadmConfigPatches:
+- |
+  apiVersion: kubeadm.k8s.io/v1beta1
+  kind: ClusterConfiguration
+  metadata:
+    name: config
+  apiServer:
+    extraArgs:
+      "enable-admission-plugins": "PodSecurityPolicy,NodeRestriction"
+nodes:
+# the control plane node config
+- role: control-plane
+# the three workers
+- role: worker
+- role: worker
+
+# coredns
+# default
+
+# Jun 16 10:23:58 kind-control-plane kubelet[198]: E0616 10:23:58.584442     198 kubelet.go:1639] Failed creating a mirror pod for "etcd-kind-control-plane_kube-system(5cb0c36f1d9fa7bb789da7726978c27a)": pods "etcd-kind-control-plane" is fo
+# rbidden: unable to validate against any pod security policy: []
+# Jun 16 10:23:58 kind-control-plane kubelet[198]: E0616 10:23:58.585569     198 kubelet.go:1639] Failed creating a mirror pod for "kube-controller-manager-kind-control-plane_kube-system(ced6e7a763e96d1888013e32a44b1066)": pods "kube-contro
+# ller-manager-kind-control-plane" is forbidden: unable to validate against any pod security policy: []
