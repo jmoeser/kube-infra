@@ -11,3 +11,6 @@ down:
 
 unittests:
 	bin/runTests.sh
+
+test:
+	cd tests && go test -v
