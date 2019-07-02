@@ -9,6 +9,7 @@ local default_version = '1.1.3';
 
         local instance = self,
 
+        namespace: base.Namespace(name),
         serviceaccount: base.ServiceAccount(name) {
             metadata+: {
                 namespace: namespace,
@@ -54,10 +55,24 @@ local default_version = '1.1.3';
                 },
                 template+: {
                     spec+: {
+                        affinity: {
+                            podAntiAffinity: {
+                                preferredDuringSchedulingIgnoredDuringExecution: [{
+                                    podAffinityTerm: {
+                                        labelSelector: {
+                                            matchLabels: {
+                                                app: "vault"
+                                            }
+                                        },
+                                        topologyKey: "kubernetes.io/hostname",
+                                    },
+                                    weight: 100
+                                }]
+                            }
+                        },
                         containers_: {
                             vault: base.Container("vault") {
                                 image: "vault:" + version,
-                                # command: ["vault", "server", "-dev", "-dev-listen-address", "[::]:8200"],
                                 command: ["vault", "server", "-config", "/vault/config"],
                                 resources: {
                                     requests: {
@@ -78,23 +93,8 @@ local default_version = '1.1.3';
                                     VAULT_LOG_LEVEL: "info",
                                     POD_IP: {
                                         fieldRef: {
-                                            fieldPath: "status.podIp"
+                                            fieldPath: "status.podIP"
                                         }
-                                    }
-                                },
-                                affinity: {
-                                    podAntiAffinity: {
-                                        preferredDuringSchedulingIgnoredDuringExecution: [{
-                                            podAffinityTerm: {
-                                                labelSelector: {
-                                                    matchLabels: {
-                                                        app: "vault"
-                                                    }
-                                                },
-                                                topologyKey: "kubernetes.io/hostname",
-                                            },
-                                            weight: 100
-                                        }]
                                     }
                                 },
                                 livenessProbe: {

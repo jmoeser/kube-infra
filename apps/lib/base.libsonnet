@@ -19,6 +19,14 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
             }
         },
     },
+    Namespace(name): kube.Namespace(name) {
+        metadata+: {
+            labels+: {
+                "app.kubernetes.io/managed-by": "kubecfg",
+                "app.kubernetes.io/name": name
+            }
+        },
+    },
     Service(name): kube.Service(name) {
         metadata+: {
             labels+: {
@@ -36,11 +44,21 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
         },
     },
     PodDisruptionBudget(name): kube.PodDisruptionBudget(name) {
+        local this = self,
+        target_pod:: error "target_pod required",
+
+        kind: 'PodDisruptionBudget',
+        apiVersion: 'policy/v1beta1',
         metadata+: {
             labels+: {
                 "app.kubernetes.io/managed-by": "kubecfg",
                 "app.kubernetes.io/name": name
             }
+        },
+        spec: {
+          selector: {
+            matchLabels: this.target_pod.metadata.labels,
+          },
         },
     },
     PodSecurityPolicy(name): {
