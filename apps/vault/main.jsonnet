@@ -2,14 +2,21 @@ local base = import "../lib/base.libsonnet";
 
 local vault_config = import "vault-config.jsonnet";
 
+local vault_container = 'vault';
 local default_version = '1.1.3';
+local app_desc = "vault";
 
 {
     VaultInstance(name, namespace, version = default_version, devel = false): {
 
         local instance = self,
 
-        namespace: base.Namespace(name),
+        commonLabels:: {
+            "app.kubernetes.io/managed-by": "kubecfg",
+            "app.kubernetes.io/instance": name,
+            "app.kubernetes.io/name": app_desc
+        },
+        namespace: base.Namespace(name, self.commonLabels),
         serviceaccount: base.ServiceAccount(name) {
             metadata+: {
                 namespace: namespace,
@@ -18,7 +25,7 @@ local default_version = '1.1.3';
                 }
             }
         },
-        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget("vault") {
+        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name) {
             metadata+: {
                 namespace: namespace
             },
@@ -33,7 +40,7 @@ local default_version = '1.1.3';
             },
             target_pod:: instance.deployment.spec.template,
         },
-        config: base.ConfigMap(name) {
+        config: base.ConfigMap(name, self.commonLabels) {
             metadata+: {
                 namespace: namespace
             },
@@ -41,7 +48,7 @@ local default_version = '1.1.3';
                 "config.json": std.toString(vault_config.config(devel)),
             }
         },
-        deployment: base.Deployment(name) {
+        deployment: base.Deployment(name, self.commonLabels) {
             metadata+: {
                 namespace: namespace
             },
@@ -72,7 +79,7 @@ local default_version = '1.1.3';
                         },
                         containers_: {
                             vault: base.Container("vault") {
-                                image: "vault:" + version,
+                                image: vault_container + ":" + version,
                                 command: ["vault", "server", "-config", "/vault/config"],
                                 resources: {
                                     requests: {
@@ -91,6 +98,7 @@ local default_version = '1.1.3';
                                 env_: {
                                     VAULT_CLUSTER_ADDR: "https://$(POD_IP):8201",
                                     VAULT_LOG_LEVEL: "info",
+                                    SKIP_SETCAP: "true",
                                     POD_IP: {
                                         fieldRef: {
                                             fieldPath: "status.podIP"

@@ -2,29 +2,20 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
 #local kube = import "./kube.libsonnet";
 
 {
-    ConfigMap(name): kube.ConfigMap(name) {
+    ConfigMap(name, commonLabels): kube.ConfigMap(name) {
         metadata+: {
-            labels+: {
-                "app.kubernetes.io/managed-by": "kubecfg",
-                "app.kubernetes.io/name": name
-            }
+            labels+: commonLabels,
         },
     },
     Container(name): kube.Container(name),
-    Deployment(name): kube.Deployment(name) {
+    Deployment(name, commonLabels): kube.Deployment(name) {
         metadata+: {
-            labels+: {
-                "app.kubernetes.io/managed-by": "kubecfg",
-                "app.kubernetes.io/name": name
-            }
+            labels+: commonLabels,
         },
     },
-    Namespace(name): kube.Namespace(name) {
+    Namespace(name, commonLabels): kube.Namespace(name) {
         metadata+: {
-            labels+: {
-                "app.kubernetes.io/managed-by": "kubecfg",
-                "app.kubernetes.io/name": name
-            }
+            labels+: commonLabels,
         },
     },
     Service(name): kube.Service(name) {

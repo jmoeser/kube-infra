@@ -20,17 +20,22 @@ func TestVault(t *testing.T) {
 	require.NoError(t, err)
 
 	namespaceName := fmt.Sprintf("tests-%s", strings.ToLower(random.UniqueId()))
-	namespaceArg := fmt.Sprintf("namespace=%s", namespaceName)
 
-	argsArray := []string{"show", "-o", "yaml", jsonnetResourcePath, "-V", namespaceArg}
+	t.Run("Validate", func(t *testing.T) {
+		namespaceArg := fmt.Sprintf("namespace=%s", namespaceName)
 
-	kubeCfgCommand := shell.Command{
-		Command: "kubecfg",
-		//Args:    []string{outputArg, jsonnetResourcePath, namespaceArg},
-		Args: argsArray,
-	}
+		argsArray := []string{"show", "-o", "yaml", jsonnetResourcePath, "-V", namespaceArg}
 
-	kubecfgApplyResult := shell.RunCommandAndGetOutput(t, kubeCfgCommand)
+		kubeCfgCommand := shell.Command{
+			Command: "kubecfg",
+			//Args:    []string{outputArg, jsonnetResourcePath, namespaceArg},
+			Args: argsArray,
+		}
+
+		//kubecfgApplyResult := shell.RunCommandAndGetOutput(t, kubeCfgCommand)
+		shell.RunCommandAndGetOutput(t, kubeCfgCommand)
+	})
+
 	//t.Log(kubecfgApplyResult)
 
 	// // Setup the kubectl config and context. Here we choose to use the defaults, which is:
