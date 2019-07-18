@@ -1,4 +1,4 @@
-local base = import "../lib/base.libsonnet";
+local base = import "../../lib/base.libsonnet";
 
 local vault_config = import "vault-config.jsonnet";
 
@@ -122,9 +122,6 @@ local app_desc = "vault";
                                 },
                                 securityContext: {
                                     readOnlyRootFilesystem: true,
-                                    capabilities: {
-                                        add: ["IPC_LOCK"]
-                                    }
                                 },
                                 volumeMounts_: {
                                     vault_config: {

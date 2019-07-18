@@ -18,12 +18,14 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
             labels+: commonLabels,
         },
     },
-    Service(name): kube.Service(name) {
+    Secret(name, commonLabels): kube.Secret(name) {
         metadata+: {
-            labels+: {
-                "app.kubernetes.io/managed-by": "kubecfg",
-                "app.kubernetes.io/name": name
-            }
+            labels+: commonLabels,
+        },
+    },
+    Service(name, commonLabels): kube.Service(name) {
+        metadata+: {
+            labels+: commonLabels,
         },
     },
     ServiceAccount(name): kube.ServiceAccount(name) {
@@ -32,6 +34,11 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
                 "app.kubernetes.io/managed-by": "kubecfg",
                 "app.kubernetes.io/name": name
             },
+        },
+    },
+    StatefulSet(name, commonLabels): kube.StatefulSet(name) {
+        metadata+: {
+            labels+: commonLabels,
         },
     },
     PodDisruptionBudget(name): kube.PodDisruptionBudget(name) {
