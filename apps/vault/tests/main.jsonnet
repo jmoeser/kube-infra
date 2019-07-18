@@ -1,7 +1,6 @@
 local Vault = import "../main.jsonnet";
 
 local name = 'vault-test';
-//local namespace = 'vault';
 local devel = true;
 
 {
