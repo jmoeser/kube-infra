@@ -1,0 +1,36 @@
+IP=$(hostname -i)
+if [ -e /etc/consul/secrets/gossip-key ]; then
+  echo "{\"encrypt\": \"$(base64 /etc/consul/secrets/gossip-key)\"}" > /etc/consul/encrypt.json
+  GOSSIP_KEY="-config-file /etc/consul/encrypt.json"
+fi
+
+for i in $(seq 0 $((${INITIAL_CLUSTER_SIZE} - 1))); do
+    while true; do
+        echo "Waiting for ${STATEFULSET_NAME}-${i}.${STATEFULSET_NAME} to come up"
+        ping -W 1 -c 1 ${STATEFULSET_NAME}-${i}.${STATEFULSET_NAME}.${STATEFULSET_NAMESPACE}.svc > /dev/null && break
+        sleep 1s
+    done
+done
+
+PEERS=""
+for i in $(seq 0 $((${INITIAL_CLUSTER_SIZE} - 1))); do
+  NEXT_PEER="$(ping -c 1 ${STATEFULSET_NAME}-${i}.${STATEFULSET_NAME}.${STATEFULSET_NAMESPACE}.svc | awk -F'[()]' '/PING/{print $2}')"
+  if [ "${NEXT_PEER}" != "${POD_IP}" ]; then
+    PEERS="${PEERS}${PEERS:+ } -retry-join ${STATEFULSET_NAME}-${i}.${STATEFULSET_NAME}.${STATEFULSET_NAMESPACE}.svc"
+  fi
+done
+
+exec /bin/consul agent \
+  -ui \
+  -domain=consul \
+  -data-dir=/var/lib/consul \
+  -server \
+  -bootstrap-expect=${INITIAL_CLUSTER_SIZE} \
+  -disable-keyring-file \
+  -bind=0.0.0.0 \
+  -advertise=${IP} \
+  ${PEERS} \
+  ${GOSSIP_KEY} \
+  -client=0.0.0.0 \
+  -dns-port=${DNSPORT} \
+  -http-port=8500
