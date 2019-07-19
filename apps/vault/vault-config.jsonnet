@@ -15,10 +15,11 @@
             }
         } else {
             consul: {
-                address: "consul:8500",
-                path: "vault"
+                address: "consul-test-web-ui:8500",
+                path: "vault/"
             }
         },
-        ui: true
+        ui: true,
+        disable_mlock: true
     }
 }

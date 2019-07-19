@@ -34,7 +34,7 @@ local app_desc = "vault";
                 maxUnavailable: 1
             },
         },
-        service: base.Service(name) {
+        service: base.Service(name, self.commonLabels) {
             metadata+: {
                 namespace: namespace
             },
@@ -96,7 +96,8 @@ local app_desc = "vault";
                                     },
                                 },
                                 env_: {
-                                    VAULT_CLUSTER_ADDR: "https://$(POD_IP):8201",
+                                    //VAULT_CLUSTER_ADDR: "https://$(POD_IP):8201",
+                                    VAULT_API_ADDR: "https://$(POD_IP):8201",
                                     VAULT_LOG_LEVEL: "info",
                                     SKIP_SETCAP: "true",
                                     POD_IP: {

@@ -14,7 +14,6 @@ local app_desc = "consul";
             "app.kubernetes.io/instance": name,
             "app.kubernetes.io/name": app_desc
         },
-        namespace: base.Namespace(name, self.commonLabels),
         poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name) {
             metadata+: {
                 namespace: namespace
@@ -25,6 +24,9 @@ local app_desc = "consul";
             },
         },
         secret: base.Secret(name, self.commonLabels) {
+            metadata+: {
+                namespace: namespace
+            },
             data_: {
                 "gossip-key": gossip_key
             }
@@ -100,12 +102,6 @@ local app_desc = "consul";
             },
             spec+: {
                 replicas: if devel then 1 else 3,
-                strategy+: {
-                    type: "RollingUpdate",
-                    rollingUpdate: {
-                        maxUnavailable: 1
-                    }
-                },
                 template+: {
                     spec+: {
                         affinity: {
