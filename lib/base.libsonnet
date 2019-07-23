@@ -18,6 +18,11 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
             labels+: commonLabels,
         },
     },
+    NetworkPolicy(name, commonLabels): kube.NetworkPolicy(name) {
+        metadata+: {
+            labels+: commonLabels,
+        },
+    },
     Secret(name, commonLabels): kube.Secret(name) {
         metadata+: {
             labels+: commonLabels,
@@ -28,15 +33,17 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
             labels+: commonLabels,
         },
     },
-    ServiceAccount(name): kube.ServiceAccount(name) {
+    ServiceAccount(name, commonLabels): kube.ServiceAccount(name) {
         metadata+: {
-            labels+: {
-                "app.kubernetes.io/managed-by": "kubecfg",
-                "app.kubernetes.io/name": name
-            },
+            labels+: commonLabels,
         },
     },
     StatefulSet(name, commonLabels): kube.StatefulSet(name) {
+        metadata+: {
+            labels+: commonLabels,
+        },
+    },
+    PersistentVolumeClaim(name, commonLabels): kube.PersistentVolumeClaim(name) {
         metadata+: {
             labels+: commonLabels,
         },
@@ -105,6 +112,7 @@ local kube = import "https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
                 'persistentVolumeClaim'
             ]
         }
-    }
-
+    },
+    podLabelsSelector(obj, filter=null): kube.podLabelsSelector(obj, filter=null),
+    podsPorts(obj_list): kube.podsPorts(obj_list)
 }
