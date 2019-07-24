@@ -12,20 +12,23 @@ local app_desc = "vault";
         local instance = self,
 
         commonLabels:: {
-            "app.kubernetes.io/managed-by": "kubecfg",
-            "app.kubernetes.io/instance": name,
-            "app.kubernetes.io/name": app_desc
+            "app": app_desc,
+            "version": version
         },
-        namespace: base.Namespace(name, self.commonLabels),
-        serviceaccount: base.ServiceAccount(name) {
+        commonAnnotations:: { },
+        commonMetadata:: {
+            labels+: instance.commonLabels,
+            namespace: namespace,
+            annotations+: instance.commonAnnotations
+        },
+
+        namespace: base.Namespace(name, self.commonMetadata),
+        serviceaccount: base.ServiceAccount(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace,
-                labels+: {
-                    "app.kubernetes.io/name": "vault"
-                }
             }
         },
-        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name) {
+        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -34,13 +37,13 @@ local app_desc = "vault";
                 maxUnavailable: 1
             },
         },
-        service: base.Service(name, self.commonLabels) {
+        service: base.Service(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
             target_pod:: instance.deployment.spec.template,
         },
-        config: base.ConfigMap(name, self.commonLabels) {
+        config: base.ConfigMap(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -48,7 +51,7 @@ local app_desc = "vault";
                 "config.json": std.toString(vault_config.config(devel)),
             }
         },
-        deployment: base.Deployment(name, self.commonLabels) {
+        deployment: base.Deployment(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -79,7 +82,8 @@ local app_desc = "vault";
                         },
                         containers_: {
                             vault: base.Container("vault") {
-                                image: vault_container + ":" + version,
+                                // image: vault_container + ":" + version,
+                                image: '%(container)s:%(version)s' % { container: vault_container, version: version},
                                 command: ["vault", "server", "-config", "/vault/config"],
                                 resources: {
                                     requests: {
@@ -144,9 +148,9 @@ local app_desc = "vault";
                                 emptyDir: {}
                             }
                         },
-                        securityContext: {
-                            runAsNonRoot: true
-                        }
+                        # securityContext: {
+                        #     runAsNonRoot: true
+                        # }
                     },
                 },
             },

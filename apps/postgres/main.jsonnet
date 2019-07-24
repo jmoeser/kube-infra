@@ -10,11 +10,17 @@ local app_desc = "postgres";
         local instance = self,
 
         commonLabels:: {
-            "app.kubernetes.io/managed-by": "kubecfg",
-            "app.kubernetes.io/instance": name,
-            "app.kubernetes.io/name": app_desc
+            "app": app_desc,
+            "version": version
         },
-        secret: base.Secret(name, self.commonLabels) {
+        commonAnnotations:: { },
+        commonMetadata:: {
+            labels+: instance.commonLabels,
+            namespace: namespace,
+            annotations+: instance.commonAnnotations
+        },
+
+        secret: base.Secret(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -22,19 +28,19 @@ local app_desc = "postgres";
                 "postgres-password": postgres_password
             },
         },
-        service: base.Service(app_desc, self.commonLabels) {
+        service: base.Service(app_desc, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
             target_pod:: instance.deployment.spec.template,
         },
-        persistentvolumeclaim: if devel then {} else base.PersistentVolumeClaim(name, self.commonLabels) {
+        persistentvolumeclaim: if devel then {} else base.PersistentVolumeClaim(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
             storage: "8Gi",
         },
-        networkpolicy: base.NetworkPolicy(name, self.commonLabels) {
+        networkpolicy: base.NetworkPolicy(name, self.commonMetadata) {
             spec+: base.podLabelsSelector(instance.deployment) {
                 ingress_: {
                   from_app: {
@@ -46,7 +52,7 @@ local app_desc = "postgres";
                 },
             }
         },
-        deployment: base.Deployment(name, self.commonLabels) {
+        deployment: base.Deployment(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },

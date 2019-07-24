@@ -10,11 +10,17 @@ local app_desc = "consul";
         local instance = self,
 
         commonLabels:: {
-            "app.kubernetes.io/managed-by": "kubecfg",
-            "app.kubernetes.io/instance": name,
-            "app.kubernetes.io/name": app_desc
+            "app": app_desc,
+            "version": version
         },
-        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name) {
+        commonAnnotations:: { },
+        commonMetadata:: {
+            labels+: instance.commonLabels,
+            namespace: namespace,
+            annotations+: instance.commonAnnotations
+        },
+
+        poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -23,7 +29,7 @@ local app_desc = "consul";
                 maxUnavailable: 1
             },
         },
-        secret: base.Secret(name, self.commonLabels) {
+        secret: base.Secret(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -31,7 +37,7 @@ local app_desc = "consul";
                 "gossip-key": gossip_key
             }
         },
-        web_ui_service: base.Service(name + "-web-ui", self.commonLabels) {
+        web_ui_service: base.Service(app_desc + "-web-ui", self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -48,7 +54,7 @@ local app_desc = "consul";
                 }
             }
         },
-        service: base.Service(name, self.commonLabels) {
+        service: base.Service(app_desc, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -96,7 +102,7 @@ local app_desc = "consul";
                 }
             }
         },
-        statefulset: base.StatefulSet(name, self.commonLabels) {
+        statefulset: base.StatefulSet(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace
             },
@@ -205,7 +211,7 @@ local app_desc = "consul";
                             }
                         },
                         securityContext: {
-                            runAsNonRoot: true,
+                            # runAsNonRoot: true,
                             fsGroup: 1000
                         }
                     },
