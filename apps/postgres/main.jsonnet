@@ -21,23 +21,14 @@ local app_desc = "postgres";
         },
 
         secret: base.Secret(name, self.commonMetadata) {
-            metadata+: {
-                namespace: namespace
-            },
             data_: {
                 "postgres-password": postgres_password
             },
         },
         service: base.Service(app_desc, self.commonMetadata) {
-            metadata+: {
-                namespace: namespace
-            },
             target_pod:: instance.deployment.spec.template,
         },
         persistentvolumeclaim: if devel then {} else base.PersistentVolumeClaim(name, self.commonMetadata) {
-            metadata+: {
-                namespace: namespace
-            },
             storage: "8Gi",
         },
         networkpolicy: base.NetworkPolicy(name, self.commonMetadata) {
@@ -53,9 +44,6 @@ local app_desc = "postgres";
             }
         },
         deployment: base.Deployment(name, self.commonMetadata) {
-            metadata+: {
-                namespace: namespace
-            },
             spec+: {
                 replicas: 1,
                 strategy+: {
@@ -102,11 +90,9 @@ local app_desc = "postgres";
                                     POSTGRES_INITDB_ARGS: "",
                                     PGDATA: "/var/lib/postgresql/data/pgdata",
                                     POSTGRES_PASSWORD: {
-                                        valueFrom: {
-                                            secretKeyRef: {
-                                                name: instance.secret.metadata.name,
-                                                key: "postgres-password"
-                                            }
+                                        secretKeyRef: {
+                                            name: instance.secret.metadata.name,
+                                            key: "postgres-password"
                                         }
                                     },
                                     POD_IP: {
