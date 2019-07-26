@@ -1,16 +1,21 @@
-SHELL:=/bin/bash
+SHELL := /bin/bash
+JSONNET_FMT := jsonnetfmt -n 4 --max-blank-lines 2 --string-style s --comment-style s
 
 up:
 	kind create cluster --config kind-config.yaml
-	export KUBECONFIG=$$(kind get kubeconfig-path)
 	sleep 10
-	kubectl get nodes
+	KUBECONFIG=$$(kind get kubeconfig-path) kubectl get nodes
 
 down:
 	kind delete cluster
 
 unittests:
-	bin/runTests.sh
+	bin/runValidation.sh
 
 test:
-	cd tests && go test -v
+	bin/runTests.sh
+#	cd tests && go test -v
+
+fmt:
+	find . -name '*.libsonnet' -o -name '*.jsonnet' | \
+		xargs -n 1 -- $(JSONNET_FMT) -i
