@@ -1,110 +1,110 @@
-local base = import "../../lib/base.libsonnet";
+local base = import '../../lib/base.libsonnet';
 
 local consul_container = 'consul';
 local default_version = '1.5.2';
-local app_desc = "consul";
+local app_desc = 'consul';
 
 {
-    ConsulInstance(name, namespace, gossip_key, version = default_version, devel = false): {
+    ConsulInstance(name, namespace, gossip_key, version=default_version, devel=false): {
 
         local instance = self,
 
         commonLabels:: {
-            "app": app_desc,
-            "version": version
+            app: app_desc,
+            version: version,
         },
-        commonAnnotations:: { },
+        commonAnnotations:: {},
         commonMetadata:: {
             labels+: instance.commonLabels,
             namespace: namespace,
-            annotations+: instance.commonAnnotations
+            annotations+: instance.commonAnnotations,
         },
 
         poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             target_pod:: instance.statefulset.spec.template,
             spec+: {
-                maxUnavailable: 1
+                maxUnavailable: 1,
             },
         },
         secret: base.Secret(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             data_: {
-                "gossip-key": gossip_key
-            }
+                'gossip-key': gossip_key,
+            },
         },
-        web_ui_service: base.Service(app_desc + "-web-ui", self.commonMetadata) {
+        web_ui_service: base.Service(app_desc + '-web-ui', self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             target_pod:: instance.statefulset.spec.template,
             spec: {
                 ports: [
                     {
-                        name: "http",
-                        port: 8500
-                    }
+                        name: 'http',
+                        port: 8500,
+                    },
                 ],
                 selector: {
-                    "app.kubernetes.io/name": app_desc
-                }
-            }
+                    'app.kubernetes.io/name': app_desc,
+                },
+            },
         },
         service: base.Service(app_desc, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             target_pod:: instance.statefulset.spec.template,
             spec: {
                 ports: [
                     {
-                        name: "rpc",
-                        port: 8400
+                        name: 'rpc',
+                        port: 8400,
                     },
                     {
-                        name: "serflan-tcp",
-                        port: 8301
-                    },
-                    {
-                        name: "serflan-udp",
+                        name: 'serflan-tcp',
                         port: 8301,
-                        protocol: "UDP"
                     },
                     {
-                        name: "serfwan-tcp",
-                        port: 8302
+                        name: 'serflan-udp',
+                        port: 8301,
+                        protocol: 'UDP',
                     },
                     {
-                        name: "serfwan-udp",
+                        name: 'serfwan-tcp',
                         port: 8302,
-                        protocol: "UDP"
                     },
                     {
-                        name: "server",
-                        port: 8300
+                        name: 'serfwan-udp',
+                        port: 8302,
+                        protocol: 'UDP',
                     },
                     {
-                        name: "consuldns-tcp",
-                        port: 8600
+                        name: 'server',
+                        port: 8300,
                     },
                     {
-                        name: "consuldns-udp",
+                        name: 'consuldns-tcp',
                         port: 8600,
-                        protocol: "UDP"
+                    },
+                    {
+                        name: 'consuldns-udp',
+                        port: 8600,
+                        protocol: 'UDP',
                     },
                 ],
                 selector: {
-                    "app.kubernetes.io/name": app_desc
-                }
-            }
+                    'app.kubernetes.io/name': app_desc,
+                },
+            },
         },
         statefulset: base.StatefulSet(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             spec+: {
                 replicas: if devel then 1 else 3,
@@ -116,107 +116,107 @@ local app_desc = "consul";
                                     podAffinityTerm: {
                                         labelSelector: {
                                             matchLabels: {
-                                                "app.kubernetes.io/instance": name
-                                            }
+                                                'app.kubernetes.io/instance': name,
+                                            },
                                         },
-                                        topologyKey: "kubernetes.io/hostname",
+                                        topologyKey: 'kubernetes.io/hostname',
                                     },
-                                    weight: 100
-                                }]
-                            }
+                                    weight: 100,
+                                }],
+                            },
                         },
                         containers_: {
-                            consul: base.Container("consul") {
-                                image: '%(container)s:%(version)s' % { container: consul_container, version: version},
-                                command: ["/bin/sh", "-ec", importstr 'consul-command.txt',],
+                            consul: base.Container('consul') {
+                                image: '%(container)s:%(version)s' % { container: consul_container, version: version },
+                                command: ['/bin/sh', '-ec', importstr 'consul-command.txt'],
                                 resources: {
                                     requests: {
-                                        cpu: "100m",
-                                        memory: "100Mi"
-                                    }
+                                        cpu: '100m',
+                                        memory: '100Mi',
+                                    },
                                 },
                                 ports_: {
                                     http: {
-                                        containerPort: 8800
+                                        containerPort: 8800,
                                     },
                                     rpc: {
-                                        containerPort: 8400
+                                        containerPort: 8400,
                                     },
                                     serflan_tcp: {
-                                        containerPort: 8301
+                                        containerPort: 8301,
                                     },
                                     serflan_udp: {
                                         containerPort: 8301,
-                                        protocol: "UDP"
+                                        protocol: 'UDP',
                                     },
                                     serfwan_tcp: {
-                                        containerPort: 8302
+                                        containerPort: 8302,
                                     },
                                     serfwan_udp: {
                                         containerPort: 8302,
-                                        protocol: "UDP"
+                                        protocol: 'UDP',
                                     },
                                     server: {
-                                        containerPort: 8300
+                                        containerPort: 8300,
                                     },
                                     consuldns_tcp: {
-                                        containerPort: 8600
+                                        containerPort: 8600,
                                     },
                                     consuldns_udp: {
                                         containerPort: 8600,
-                                        protocol: "UDP"
-                                    }
+                                        protocol: 'UDP',
+                                    },
                                 },
                                 env_: {
-                                    INITIAL_CLUSTER_SIZE: "3",
+                                    INITIAL_CLUSTER_SIZE: '3',
                                     STATEFULSET_NAME: name,
-                                    DNSPORT: "8800",
+                                    DNSPORT: '8800',
                                     POD_IP: {
                                         fieldRef: {
-                                            fieldPath: "status.podIP"
-                                        }
+                                            fieldPath: 'status.podIP',
+                                        },
                                     },
                                     STATEFULSET_NAMESPACE: {
                                         fieldRef: {
-                                            fieldPath: "metadata.namespace"
-                                        }
+                                            fieldPath: 'metadata.namespace',
+                                        },
                                     },
                                 },
                                 livenessProbe: {
                                     exec: {
-                                        command: ["consul", "members", "-http-addr=http://127.0.0.1:8500"]
+                                        command: ['consul', 'members', '-http-addr=http://127.0.0.1:8500'],
                                     },
                                     initialDelaySeconds: 30,
                                     periodSeconds: 10,
                                 },
                                 volumeMounts_: {
                                     gossip_key: {
-                                        mountPath: "/etc/consul/secrets",
-                                        readOnly: true
+                                        mountPath: '/etc/consul/secrets',
+                                        readOnly: true,
                                     },
-                                    [if devel then "consul_root"]: {
-                                        mountPath: "/var/lib/consul"
-                                    }
-                                }
+                                    [if devel then 'consul_root']: {
+                                        mountPath: '/var/lib/consul',
+                                    },
+                                },
                             },
                         },
                         volumes_: {
                             gossip_key: {
                                 secret: {
-                                    secretName: instance.secret.metadata.name
-                                }
+                                    secretName: instance.secret.metadata.name,
+                                },
                             },
-                            [if devel then "consul_root"]: {
-                                emptyDir: {}
-                            }
+                            [if devel then 'consul_root']: {
+                                emptyDir: {},
+                            },
                         },
                         securityContext: {
-                            # runAsNonRoot: true,
-                            fsGroup: 1000
-                        }
+                            // runAsNonRoot: true,
+                            fsGroup: 1000,
+                        },
                     },
                 },
             },
-        }
-    }
+        },
+    },
 }

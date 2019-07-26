@@ -1,67 +1,67 @@
-local base = import "../../lib/base.libsonnet";
+local base = import '../../lib/base.libsonnet';
 
-local vault_config = import "vault-config.jsonnet";
+local vault_config = import 'vault-config.jsonnet';
 
 local vault_container = 'vault';
 local default_version = '1.1.3';
-local app_desc = "vault";
+local app_desc = 'vault';
 
 {
-    VaultInstance(name, namespace, version = default_version, devel = false): {
+    VaultInstance(name, namespace, version=default_version, devel=false): {
 
         local instance = self,
 
         commonLabels:: {
-            "app": app_desc,
-            "version": version
+            app: app_desc,
+            version: version,
         },
-        commonAnnotations:: { },
+        commonAnnotations:: {},
         commonMetadata:: {
             labels+: instance.commonLabels,
             namespace: namespace,
-            annotations+: instance.commonAnnotations
+            annotations+: instance.commonAnnotations,
         },
 
         namespace: base.Namespace(name, self.commonMetadata),
         serviceaccount: base.ServiceAccount(name, self.commonMetadata) {
             metadata+: {
                 namespace: namespace,
-            }
+            },
         },
         poddistruptionbudget: if devel then {} else base.PodDisruptionBudget(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             target_pod:: instance.deployment.spec.template,
             spec+: {
-                maxUnavailable: 1
+                maxUnavailable: 1,
             },
         },
         service: base.Service(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             target_pod:: instance.deployment.spec.template,
         },
         config: base.ConfigMap(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             data+: {
-                "config.json": std.toString(vault_config.config(devel)),
-            }
+                'config.json': std.toString(vault_config.config(devel)),
+            },
         },
         deployment: base.Deployment(name, self.commonMetadata) {
             metadata+: {
-                namespace: namespace
+                namespace: namespace,
             },
             spec+: {
                 replicas: if devel then 1 else 3,
                 strategy+: {
-                    type: "RollingUpdate",
+                    type: 'RollingUpdate',
                     rollingUpdate: {
-                        maxUnavailable: 1
-                    }
+                        maxUnavailable: 1,
+                    },
                 },
                 template+: {
                     spec+: {
@@ -71,57 +71,57 @@ local app_desc = "vault";
                                     podAffinityTerm: {
                                         labelSelector: {
                                             matchLabels: {
-                                                app: "vault"
-                                            }
+                                                app: 'vault',
+                                            },
                                         },
-                                        topologyKey: "kubernetes.io/hostname",
+                                        topologyKey: 'kubernetes.io/hostname',
                                     },
-                                    weight: 100
-                                }]
-                            }
+                                    weight: 100,
+                                }],
+                            },
                         },
                         containers_: {
-                            vault: base.Container("vault") {
+                            vault: base.Container('vault') {
                                 // image: vault_container + ":" + version,
-                                image: '%(container)s:%(version)s' % { container: vault_container, version: version},
-                                command: ["vault", "server", "-config", "/vault/config"],
+                                image: '%(container)s:%(version)s' % { container: vault_container, version: version },
+                                command: ['vault', 'server', '-config', '/vault/config'],
                                 resources: {
                                     requests: {
-                                        cpu: "100m",
-                                        memory: "100Mi"
-                                    }
+                                        cpu: '100m',
+                                        memory: '100Mi',
+                                    },
                                 },
                                 ports_: {
                                     api: {
-                                        containerPort: 8200
+                                        containerPort: 8200,
                                     },
                                     cluster_address: {
-                                        containerPort: 8201
+                                        containerPort: 8201,
                                     },
                                 },
                                 env_: {
                                     //VAULT_CLUSTER_ADDR: "https://$(POD_IP):8201",
-                                    VAULT_API_ADDR: "https://$(POD_IP):8201",
-                                    VAULT_LOG_LEVEL: "info",
-                                    SKIP_SETCAP: "true",
+                                    VAULT_API_ADDR: 'https://$(POD_IP):8201',
+                                    VAULT_LOG_LEVEL: 'info',
+                                    SKIP_SETCAP: 'true',
                                     POD_IP: {
                                         fieldRef: {
-                                            fieldPath: "status.podIP"
-                                        }
-                                    }
+                                            fieldPath: 'status.podIP',
+                                        },
+                                    },
                                 },
                                 livenessProbe: {
                                     httpGet: {
-                                        path: "/v1/sys/health?standbyok=true&uninitcode=204&sealedcode=204&",
+                                        path: '/v1/sys/health?standbyok=true&uninitcode=204&sealedcode=204&',
                                         port: 8200,
-                                        scheme: "HTTP"
+                                        scheme: 'HTTP',
                                     },
                                     initialDelaySeconds: 30,
                                     periodSeconds: 10,
                                 },
                                 readinessProbe: self.livenessProbe {
                                     httpGet+: {
-                                        path: "/v1/sys/health?standbycode=204&uninitcode=204&",
+                                        path: '/v1/sys/health?standbycode=204&uninitcode=204&',
                                     },
                                     initialDelaySeconds: 10,
                                 },
@@ -130,30 +130,30 @@ local app_desc = "vault";
                                 },
                                 volumeMounts_: {
                                     vault_config: {
-                                        mountPath: "/vault/config"
+                                        mountPath: '/vault/config',
                                     },
-                                    [if devel then "vault_root"]: {
-                                        mountPath: "/vault/data"
-                                    }
-                                }
+                                    [if devel then 'vault_root']: {
+                                        mountPath: '/vault/data',
+                                    },
+                                },
                             },
                         },
                         volumes_: {
                             vault_config: {
                                 configMap: {
-                                    name: instance.config.metadata.name
-                                }
+                                    name: instance.config.metadata.name,
+                                },
                             },
-                            [if devel then "vault_root"]: {
-                                emptyDir: {}
-                            }
+                            [if devel then 'vault_root']: {
+                                emptyDir: {},
+                            },
                         },
-                        # securityContext: {
-                        #     runAsNonRoot: true
-                        # }
+                        // securityContext: {
+                        //     runAsNonRoot: true
+                        // }
                     },
                 },
             },
         },
-    }
+    },
 }
