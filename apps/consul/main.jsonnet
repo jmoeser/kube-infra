@@ -55,9 +55,6 @@ local app_desc = 'consul';
             },
         },
         service: base.Service(app_desc, self.commonMetadata) {
-            metadata+: {
-                namespace: namespace,
-            },
             target_pod:: instance.statefulset.spec.template,
             spec: {
                 ports: [
