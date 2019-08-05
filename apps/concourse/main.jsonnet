@@ -8,7 +8,6 @@ local concourse_container = 'concourse/concourse';
 local default_version = '5.4.0';
 local app_desc = 'concourse';
 
-
 {
     ConcourseInstance(name, namespace, version=default_version, devel=false): {
 

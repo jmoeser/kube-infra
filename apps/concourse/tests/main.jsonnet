@@ -2,5 +2,9 @@ local Concourse = import '../main.jsonnet';
 local name = 'concourse-test';
 
 {
-    concourse: Concourse.ConcourseInstance(name, std.extVar('namespace'), devel=true),
+    concourse: Concourse.ConcourseInstance(name, std.extVar('namespace'), devel=true) {
+        instanceConfig+: {
+            databasePassword: "Password!"
+        }
+    },
 }

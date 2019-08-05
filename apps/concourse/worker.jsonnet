@@ -1,6 +1,5 @@
 local base = import '../../lib/base.libsonnet';
 
-
 {
     ConcourseWorker(name, instance): {
 

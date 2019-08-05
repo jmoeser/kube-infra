@@ -95,17 +95,8 @@ local app_desc = 'postgres';
                                     POSTGRES_DB: instance.databaseDetails.database,
                                     POSTGRES_INITDB_ARGS: '',
                                     PGDATA: '/var/lib/postgresql/data/pgdata',
-                                    POSTGRES_PASSWORD: {
-                                        secretKeyRef: {
-                                            name: instance.secret.metadata.name,
-                                            key: 'postgres-password',
-                                        },
-                                    },
-                                    POD_IP: {
-                                        fieldRef: {
-                                            fieldPath: 'status.podIP',
-                                        },
-                                    },
+                                    POSTGRES_PASSWORD: base.SecretKeyRef(instance.secret, 'postgres-password'),
+                                    POD_IP: base.FieldRef('status.podIP'),
                                 },
                                 livenessProbe: {
                                     exec: {
