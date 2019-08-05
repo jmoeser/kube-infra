@@ -28,6 +28,20 @@ local kube = import 'https://raw.githubusercontent.com/bitnami-labs/kube-libsonn
     ServiceAccount(name, commonMetadata): kube.ServiceAccount(name) {
         metadata+: commonMetadata + $.globalMetadata,
     },
+    SecretKeyRef(secret, key): kube.SecretKeyRef(secret, key),
+    FieldRef(key): kube.FieldRef(key),
+    ClusterRole(name, commonMetadata): kube.ClusterRole(name) {
+        metadata+: commonMetadata + $.globalMetadata,
+    },
+    ClusterRoleBinding(name, commonMetadata): kube.ClusterRoleBinding(name) {
+        metadata+: commonMetadata + $.globalMetadata,
+    },
+    Role(name, commonMetadata): kube.Role(name) {
+        metadata+: commonMetadata + $.globalMetadata,
+    },
+    RoleBinding(name, commonMetadata): kube.RoleBinding(name) {
+        metadata+: commonMetadata + $.globalMetadata,
+    },
     StatefulSet(name, commonMetadata): kube.StatefulSet(name) {
         metadata+: commonMetadata + $.globalMetadata,
     },

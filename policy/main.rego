@@ -7,6 +7,7 @@ labels {
     input.metadata.labels["version"]
     input.metadata.labels["name"]
     input.metadata.labels["part-of"]
+    input.metadata.labels["app"]
 }
 
 deny[msg] {
@@ -36,5 +37,5 @@ deny[msg] {
 warn[msg] {
   input.kind != "Namespace"
   not labels
-  msg = sprintf("%s/%s should include labels: version/name/part-of", [kind, name])
+  msg = sprintf("%s/%s should include labels: app/version/name/part-of", [kind, name])
 }
