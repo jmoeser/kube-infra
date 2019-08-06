@@ -111,9 +111,6 @@ local app_desc = 'postgres';
                                     timeoutSeconds: 3,
                                     periodSeconds: 5,
                                 },
-                                // securityContext: {
-                                //     readOnlyRootFilesystem: true,
-                                // },
                                 volumeMounts_: if devel then {} else {
                                     data: {
                                         mountPath: '/var/lib/postgresql/data/pgdata',

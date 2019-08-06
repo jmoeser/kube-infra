@@ -30,12 +30,12 @@ local base = import '../../lib/base.libsonnet';
         },
         workerSecrets: base.Secret(name + '-worker', self.workerMetadata) {
             data_: {
-                'host-key-pub': 'asd',
-                'worker-key': 'asd',
-                'worker-key-pub': 'asd',
+                'host-key-pub': instance.instanceConfig.host_key_pub,
+                'worker-key': instance.instanceConfig.worker_key,
+                'worker-key-pub': instance.instanceConfig.worker_key_pub,
             },
         },
-        statefulset: base.StatefulSet(name, self.workerMetadata) {
+        statefulset: base.StatefulSet(name + '-worker', self.workerMetadata) {
             spec+: {
                 replicas: 2,
                 podManagementPolicy: 'Parallel',
@@ -63,7 +63,7 @@ local base = import '../../lib/base.libsonnet';
                                 image: '%(container)s:%(version)s' % { container: instance.instanceConfig.container, version: instance.instanceConfig.version },
                                 command: ['/bin/sh'],
                                 args: ['-ce', 'rm -rf /concourse-work-dir/*'],
-                                volumeMounts_: {
+                                volumeMounts_: if instance.instanceConfig.devel then {} else {
                                     'concourse-work-dir': {
                                         mountPath: '/concourse-work-dir',
                                     },
@@ -122,15 +122,16 @@ local base = import '../../lib/base.libsonnet';
                                 },
                                 volumeMounts_: {
                                     concourse_keys: {
-                                        mountPath: '/concourse-key',
+                                        mountPath: '/concourse-keys',
                                         readOnly: true,
-                                    },
-                                    work_dir: {
-                                        mountPath: '/concourse-work-dir',
                                     },
                                     pre_stop_hook: {
                                         mountPath: '/pre-stop-hook.sh',
                                         subPath: 'pre-stop-hook.sh',
+                                    },
+                                } + if instance.instanceConfig.devel then {} else {
+                                    work_dir: {
+                                        mountPath: '/concourse-work-dir',
                                     },
                                 },
                             },

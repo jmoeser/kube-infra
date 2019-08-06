@@ -12,9 +12,9 @@ local base = import '../../lib/base.libsonnet';
         },
         webSecrets: base.Secret(name + '-web', self.webMetadata) {
             data_: {
-                'host-key': 'asd',
-                'session-signing-key': 'asd',
-                'worker-key-pub': 'asd',
+                'host-key': instance.instanceConfig.host_key,
+                'session-signing-key': instance.instanceConfig.session_signing_key,
+                'worker-key-pub': instance.instanceConfig.worker_key_pub,
                 'local-users': 'test:test',
                 'database-password': instance.instanceConfig.databasePassword,
             },
@@ -40,7 +40,8 @@ local base = import '../../lib/base.libsonnet';
                     },
                 ],
                 selector: {
-                    'app.kubernetes.io/name': name,
+                    app: name,
+                    component: 'web'
                 },
             },
         },
@@ -52,7 +53,7 @@ local base = import '../../lib/base.libsonnet';
             subjects_: [webInstance.webServiceAccount],
             roleRef_: webInstance.webClusterRole,
         },
-        deployment: base.Deployment(name, self.webMetadata) {
+        deployment: base.Deployment(name + '-web', self.webMetadata) {
             spec+: {
                 replicas: 1,
                 template+: {
@@ -105,13 +106,14 @@ local base = import '../../lib/base.libsonnet';
                                     CONCOURSE_EXTERNAL_URL: instance.instanceConfig.externalURL,
                                     CONCOURSE_PROMETHEUS_BIND_IP: '0.0.0.0',
                                     CONCOURSE_PROMETHEUS_BIND_PORT: '9391',
+                                    // Order of these is important
+                                    POD_IP: base.FieldRef('status.podIP'),
                                     CONCOURSE_PEER_ADDRESS: '$(POD_IP)',
                                     CONCOURSE_TSA_BIND_PORT: '2222',
                                     CONCOURSE_TSA_DEBUG_BIND_PORT: '8079',
                                     CONCOURSE_SESSION_SIGNING_KEY: '/concourse-keys/session_signing_key',
                                     CONCOURSE_TSA_HOST_KEY: '/concourse-keys/host_key',
                                     CONCOURSE_TSA_AUTHORIZED_KEYS: '/concourse-keys/worker_key.pub',
-                                    POD_IP: base.FieldRef('status.podIP'),
                                 },
                                 livenessProbe: {
                                     httpGet: {
