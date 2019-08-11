@@ -27,6 +27,7 @@ local app_desc = 'concourse';
             namespace: namespace,
             container: concourse_container,
             version: version,
+            worker_count: 2,
             devel: devel,
         },
 
@@ -45,7 +46,7 @@ local app_desc = 'concourse';
         namespace: base.Namespace(name, self.commonMetadata),
 
         web: web.ConcourseWeb(name, self),
-        worker: worker.ConcourseWorker(name, self),
+        worker: if instance.instanceConfig.worker_count > 0 then worker.ConcourseWorker(name, self) else {},
 
         database: Postgres.PostgresInstance('postgres', namespace, instance.web.deployment, devel=devel) {
             databaseDetails+: {

@@ -14,6 +14,7 @@ local name = 'concourse-test';
             session_signing_key: importstr 'session_signing_key',
             worker_key: importstr 'worker_key',
             worker_key_pub: importstr 'worker_key.pub',
+            worker_count: 0,
         }
     },
 }

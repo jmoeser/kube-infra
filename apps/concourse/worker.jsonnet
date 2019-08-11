@@ -37,7 +37,7 @@ local base = import '../../lib/base.libsonnet';
         },
         statefulset: base.StatefulSet(name + '-worker', self.workerMetadata) {
             spec+: {
-                replicas: 2,
+                replicas: instance.instanceConfig.worker_count,
                 podManagementPolicy: 'Parallel',
                 template+: {
                     spec+: {
