@@ -1,0 +1,36 @@
+# https://github.com/telia-oss/github-pr-resource ?
+
+resources:
+
+- name: kube-infra-git
+  type: git
+  source:
+    uri: https://github.com/jmoeser/kube-infra.git
+  icon: github-circle
+
+- name: kube-infra-tests-image
+  type: registry-image
+  source:
+    repository: jmoeser/kube-infra-tests
+    tag: 0.3
+  icon: docker
+
+jobs:
+- name: kube-infra-validate
+  public: true
+  plan:
+  - get: kube-infra-git
+    trigger: true
+  - get: kube-infra-tests-image
+    trigger: true
+  - task: run-tests
+    config:
+      platform: linux
+      run:
+        dir: /kube-infra-git
+        path: /usr/bin/make
+        args:
+        - validate
+      inputs:
+      - name: kube-infra-git
+    image: kube-infra-tests-image

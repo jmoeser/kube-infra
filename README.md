@@ -1,5 +1,4 @@
-kube-infra
-==========
+# kube-infra
 
 [jsonnet](https://jsonnet.org/) based re-useable templates of Kubernetes deployments that can be deployed using [kubecfg](https://github.com/bitnami/kubecfg). For examples of how to use them look under the tests directory of each application. For instance in the Concourse tests file:
 
@@ -25,3 +24,7 @@ local name = 'concourse-test';
 We pull in the main.jsonnet file in the outer directory which contains the deployment definition and then override some configuration with our own passwords/keys as needed.
 
 [kubeval](https://github.com/instrumenta/kubeval) is used for validation of generated deployment YAML artefacts and [conftest](https://github.com/instrumenta/conftest) is used to ensure they comply with policy as defined under `policy/`.
+
+## Tests
+
+Tests set up via Concourse pipeline in `pipeline.yaml`.
