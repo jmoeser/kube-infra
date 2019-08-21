@@ -108,7 +108,7 @@ local base = import '../../lib/base.libsonnet';
                                     CONCOURSE_PROMETHEUS_BIND_PORT: '9391',
                                     // Order of these is important
                                     POD_IP: base.FieldRef('status.podIP'),
-                                    CONCOURSE_PEER_ADDRESS: '$(POD_IP)',
+                                    CONCOURSE_PEER_ADDRESS: base.FieldRef('status.podIP'),
                                     CONCOURSE_TSA_BIND_PORT: '2222',
                                     CONCOURSE_TSA_DEBUG_BIND_PORT: '8079',
                                     CONCOURSE_SESSION_SIGNING_KEY: '/concourse-keys/session_signing_key',

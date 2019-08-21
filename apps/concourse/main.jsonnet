@@ -5,7 +5,7 @@ local web = import 'web.jsonnet';
 local worker = import 'worker.jsonnet';
 
 local concourse_container = 'concourse/concourse';
-local default_version = '5.4.0';
+local default_version = '5.4.1';
 local app_desc = 'concourse';
 
 {

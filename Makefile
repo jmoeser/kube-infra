@@ -9,7 +9,7 @@ up:
 down:
 	kind delete cluster
 
-unittests:
+validate:
 	bin/runValidation.sh
 
 test:
