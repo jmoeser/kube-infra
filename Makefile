@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL := /bin/sh
 JSONNET_FMT := jsonnetfmt -n 4 --max-blank-lines 2 --string-style s --comment-style s
 
 up:
