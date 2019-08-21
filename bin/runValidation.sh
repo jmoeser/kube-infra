@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 for FILE in apps/*/tests/main.jsonnet ; do
     echo "Testing $FILE..."
